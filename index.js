@@ -20,33 +20,29 @@ app.use(authRoutes);
 app.use(messageRoutes);
 app.use("/", (req, res, next) => {
   console.log("first middleware");
-  return res.status(210).json({ message: " no page found" });
+  return res.status(210).json({ message: "no page found" });
 });
-const startServer = async () => {
+
+const startServer = () => {
   try {
-    const server = app.listen(process.env.PORT || 4000);
-    socketHelper.initSocket(server);
-    const io = socketHelper.getIo();
-    io.on("connection", (socket) => {
-      const username = socket.handshake.query.username;
+    // Move the app.listen inside the makeConnection callback
+    db.makeConnection().then(() => {
+      const server = app.listen(process.env.PORT || 4000);
+      socketHelper.initSocket(server);
+      const io = socketHelper.getIo();
+      io.on("connection", (socket) => {
+        const username = socket.handshake.query.username;
 
-      connectedUsers.add(username); // Add user with both ID and username
+        connectedUsers.add(username);
 
-      // Remove the user from the set when they disconnect
-      socket.on("disconnect", () => {
-        connectedUsers.delete(username);
+        socket.on("disconnect", () => {
+          connectedUsers.delete(username);
+          io.emit("userList", Array.from(connectedUsers));
+        });
 
         io.emit("userList", Array.from(connectedUsers));
       });
-
-      // Send an updated list of connected users to all clients
-      io.emit("userList", Array.from(connectedUsers));
-
-      // You can also log the connected users at this point
     });
-
-    // After the server has started listening, establish the MongoDB connection
-    await db.makeConnection();
   } catch (error) {
     console.error("Error starting server:", error);
   }
