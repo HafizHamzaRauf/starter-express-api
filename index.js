@@ -8,7 +8,7 @@ const messageRoutes = require("./routes/message.js");
 const cors = require("cors");
 const connectedUsers = new Set();
 const corsOptions = {
-  origin: "http://localhost:3000", // Replace with your frontend URL
+  origin: "https://live2chatting.netlify.app", // Replace with your frontend URL
   methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
   credentials: true, // This allows cookies to be sent from the frontend
   optionsSuccessStatus: 204, // No content response for preflight requests
